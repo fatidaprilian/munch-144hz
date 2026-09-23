@@ -1,105 +1,94 @@
-# POCO F4 (munch) 144Hz
+# POCO F4 (munch) 144Hz Display Mod
 
-A clean 144Hz display mod and native refresh rate unlock for the POCO F4 / Redmi K40S (`munch`).
+A clean display mod to enable 144Hz on the POCO F4 / Redmi K40S (`munch`).
 
-The POCO F4 comes with a Samsung E4 AMOLED panel. While officially capped at 120Hz on stock software, the panel hardware is physically capable of running at 144Hz. Other available modules have known issues: washed-out gray blacks, screen flicker, scanlines, and a 142Hz frame pacing bottleneck instead of a true 144Hz.
-
-This project fixes those issues directly at the DTBO hardware level and provides a native 144Hz toggle in your phone's stock Display Settings.
+The POCO F4 uses a Samsung E4 AMOLED panel that can run at 144Hz. However, older 144Hz mods often had issues with pale/washed-out colors, grey blacks, scanlines, or refresh rate dropping to 60Hz when idle. This project fixes those issues and adds a 144Hz option directly into your phone's Display Settings.
 
 ---
 
 ## Screenshots
 
 <p align="center">
-  <img src="assets/settings_144hz.jpg" width="31%" alt="144Hz in MIUI Settings" />
+  <img src="assets/settings_144hz.jpg" width="31%" alt="144Hz in Settings" />
   &nbsp;
   <img src="assets/ufotest_144hz.jpeg" width="31%" alt="144Hz UFO Test" />
   &nbsp;
-  <img src="assets/samplerate.jpeg" width="31%" alt="144Hz Input Event Invoke Rate" />
+  <img src="assets/samplerate.jpeg" width="31%" alt="144Hz Touch Rate" />
 </p>
 
 ---
 
-## What's Improved?
+## Features
 
-* **True AMOLED Black**: Black pixels now turn completely off (0 nits), fixing the dark-gray glow present in older mods.
-* **No Scanlines or Jitter**: Re-tuned panel drive timings to eliminate horizontal scanlines and micro-flicker.
-* **Solid 144Hz Input Event Invoke Rate**: Corrected vertical porch timings so touch polling and display refresh run at a true 144Hz input event invoke rate instead of dropping to 142Hz.
-* **Zero Idle-Drop**: Selected refresh rates stay solidly locked even when the screen is idle, eliminating the annoying 2-second idle drop and mode-switching flicker.
-* **Narrowed Brightness Gap**: Significantly reduced the large brightness jump present in older mods so switching between 120Hz and 144Hz is much smoother (see Known Issues below).
-* **Safe Refresh Rate Cap**: Disabled the unstable 164Hz overclock mode to keep the display panel safe from unnecessary strain.
-* **Native Display Settings**: The included module adds a native 144Hz toggle directly into your official Display Settings menu—no third-party switcher apps needed.
+* **144Hz in Settings**: Adds a 144Hz option directly in your official Display Settings (no third-party apps needed).
+* **Natural Colors & Black**: Fixes the pale/washed-out colors and glowing grey blacks from older mods.
+* **No Scanlines**: Eliminates horizontal lines/flicker on grey backgrounds.
+* **No Idle Drop**: Stays at your chosen refresh rate without dropping to 60Hz when idle.
+* **Capped at 144Hz**: Disables the unstable 164Hz overclock mode to keep the panel safe.
 
 ---
 
 ## Downloads
 
-Download the latest zip from GitHub Releases or the [`out/`](out/) folder:
+Download the latest files from GitHub Releases or the [`out/`](out/) folder:
 
 1. **All-in-One Module (Recommended)** (`ksu_munch_144hz_display_unlock.zip`):
    * Universal installer for **KernelSU**, **Magisk**, **APatch**, or **TWRP**.
-   * Flashes the 144Hz DTBO directly to your hardware partition.
-   * Automatically backs up your current DTBO before flashing.
-   * Volume key menu to select your ROM (Auto Detect, MIUI/HyperOS, or AOSP).
-   * In MIUI/HyperOS: enables 144Hz in Settings with idle-drop fix.
-   * In AOSP: sets up 144Hz natively and keeps the system clean.
+   * Flashes the 144Hz DTBO and automatically backs up your current one.
+   * Enables the 144Hz option in Settings (MIUI/HyperOS) or configures AOSP natively.
 2. **Standalone DTBO Flashable ZIP** (`twrp_munch_144hz_display_unlock.zip`):
-   * TWRP recovery installer that flashes the DTBO partition and sets up Settings integration if root is present.
+   * Simple TWRP recovery installer that only flashes the DTBO partition.
+3. **Raw DTBO Image** (`dtbo.img`):
+   * For flashing via Fastboot: `fastboot flash dtbo dtbo.img`.
 
 ---
 
 ## How to Install
 
-### Option A: All-in-One Module (Easiest)
-1. Open the **KernelSU**, **Magisk**, or **APatch** app on your phone.
-2. Go to the **Modules** tab, tap **Install from storage**, and select `ksu_munch_144hz_display_unlock.zip`.  
-   *(You can also flash this ZIP directly in TWRP Recovery).*
-3. When prompted, use your Volume keys:
-   * **Vol +**: Auto-detect your ROM.
-   * **Vol -**: Choose manually between MIUI/HyperOS and AOSP.
-   * *(If you do nothing, it will automatically detect your ROM after 8 seconds).*
+### Option A: Via KernelSU / Magisk / APatch (Recommended)
+1. Open your root manager app (**KernelSU**, **Magisk**, or **APatch**).
+2. Go to the **Modules** tab, tap **Install from storage**, and select `ksu_munch_144hz_display_unlock.zip`.
+3. Follow the on-screen volume key prompt (or wait 8 seconds for auto-detect).
 4. Reboot your phone.
-5. In MIUI: Go to **Settings -> Display -> Refresh rate**, and select **144 Hz**.
+5. In MIUI/HyperOS: Go to **Settings -> Display -> Refresh rate**, and choose **144 Hz**.
 
-### Option B: Standalone TWRP Flash
-1. Boot your POCO F4 into **TWRP Recovery**.
-2. Go to **Install**, select `twrp_munch_144hz_display_unlock.zip`, and swipe to flash.
+### Option B: Via TWRP Recovery
+1. Boot into **TWRP Recovery**.
+2. Select **Install**, choose `twrp_munch_144hz_display_unlock.zip` (or `ksu_munch_144hz_display_unlock.zip`), and swipe to flash.
 3. Reboot to system.
 
-### Updating Your Custom Kernel?
-If you update or flash a custom kernel that overwrites the DTBO partition:
-* You **do not** need to reinstall this module.
-* The module has an automatic background guard. On your first boot after the kernel update, it detects the change and automatically restores the 144Hz DTBO.
-* You will get a notification asking you to reboot. Simply restart your phone once more to re-apply 144Hz!
+### Option C: Via Fastboot
+```bash
+fastboot flash dtbo dtbo.img
+```
 
 ---
 
 ## How to Uninstall
 
-To remove the mod:
-* In **KernelSU / Magisk / APatch**: Tap **Remove** on the module and reboot. The uninstaller automatically restores your backed-up DTBO, removes module files, and resets display settings back to 120Hz.
+* If installed as a module: simply tap **Remove** in KernelSU/Magisk and reboot. The uninstaller will restore your original stock DTBO automatically.
+* If flashed via recovery or fastboot: flash your stock DTBO backup back to the DTBO partition.
 
 ---
 
 ## Compatibility
 
-* **ROM**: Confirmed working on MIUI 13 (Android 12), MIUI 14, HyperOS, and AOSP custom ROMs.
-* **Root Managers**: KernelSU, Magisk, and APatch (or rootless via TWRP).
+* **ROMs**: MIUI 13, MIUI 14, HyperOS, and AOSP custom ROMs.
+* **Root**: KernelSU, Magisk, APatch, or rootless.
 
 ---
 
-## Known Issues & Feedback
+## Known Notes
 
-* **Brightness Curve**: While the brightness gap is significantly reduced, the curve is still not a 100% identical match to 120Hz across every slider step due to physical OLED pulse emission differences at higher refresh rates.
-* If you have ideas or know how to dial this curve in even closer, feel free to open an issue or submit a pull request on GitHub!
+* **Brightness Shift**: At 144Hz, the screen is naturally slightly brighter (~19%) than at 120Hz because the panel fires 20% more refresh pulses per second. If it feels too bright, simply adjust your brightness slider slightly down.
 
 ---
 
-## Credits & Thanks
+## Credits
 
-* **Author & Maintenance**: [fatidaprilian](https://github.com/fatidaprilian)
+* **Author**: [fatidaprilian](https://github.com/fatidaprilian)
 * **GitHub Repository**: [munch-144hz](https://github.com/fatidaprilian/munch-144hz)
-* **Hardware Base**: Xiaomi & Black Shark (for the original E4 144Hz DSI parameters)
+* **Hardware Base**: Xiaomi & Black Shark (original E4 DSI parameters)
 
 ---
 
