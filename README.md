@@ -25,7 +25,7 @@ This project fixes those issues directly at the DTBO hardware level and provides
 * **True AMOLED Black**: Black pixels now turn completely off (0 nits), fixing the dark-gray glow present in older mods.
 * **No Scanlines or Jitter**: Re-tuned panel drive timings to eliminate horizontal scanlines and micro-flicker.
 * **Solid 144Hz Input Event Invoke Rate**: Corrected vertical porch timings so touch polling and display refresh run at a true 144Hz input event invoke rate instead of dropping to 142Hz.
-* **Balanced Brightness**: Realigned brightness levels with the factory 120Hz mode so switching refresh rates is smooth with no blinding jumps.
+* **Narrowed Brightness Gap**: Significantly reduced the large brightness jump present in older mods so switching between 120Hz and 144Hz is much smoother (see Known Issues below).
 * **Safe Refresh Rate Cap**: Disabled the unstable 164Hz overclock mode to keep the display panel safe from unnecessary strain.
 * **Native Display Settings**: The included module adds a native 144Hz toggle directly into your official Display Settings menu—no third-party switcher apps needed.
 
@@ -75,7 +75,7 @@ Grab the latest files from the [`out/`](out/) folder or GitHub Releases:
 
 ## Known Issues & Feedback
 
-* **Brightness Curve**: While brightness levels between 120Hz and 144Hz are now very close, they are not 100% mathematically 1:1 across every single slider step due to physical OLED pulse emission differences at higher refresh rates.
+* **Brightness Curve**: While the brightness gap is significantly reduced, the curve is still not a 100% identical match to 120Hz across every slider step due to physical OLED pulse emission differences at higher refresh rates.
 * If you have ideas or know how to dial this curve in even closer, feel free to open an issue or submit a pull request on GitHub!
 
 ---
