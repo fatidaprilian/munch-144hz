@@ -102,6 +102,25 @@ for pat, rep in replacements:
 print(f"\nTotal pattern blocks replaced: {total_replaced} (expected 42)")
 
 # =========================================================================
+# 3b. D1 ELVSS compensation: match 144Hz to 120Hz value (0x10 -> 0x2e)
+# Root cause of brightness shift between modes. Isolated change — D3 table untouched.
+# =========================================================================
+_d1_variants = [
+    (bytes.fromhex('02b01639010000000002d110'), bytes.fromhex('02b01639010000000002d12e')),  # HS delay
+    (bytes.fromhex('02b01639000000000002d110'), bytes.fromhex('02b01639000000000002d12e')),  # LP delay
+]
+_d1_total = 0
+for _old, _new in _d1_variants:
+    _cnt = data.count(_old)
+    if _cnt:
+        data = bytearray(data.replace(_old, _new))
+        _d1_total += _cnt
+if _d1_total:
+    print(f"[*] Patched D1 ELVSS: 0x10 -> 0x2e ({_d1_total} occurrence(s))")
+else:
+    print("[!] WARNING: D1=0x10 pattern not found — already patched or layout differs")
+
+# =========================================================================
 # 4. Write Output DTBO & Package TWRP ZIPs
 # =========================================================================
 out_dtbo   = os.path.join(_root, 'out', 'dtbo.img')
