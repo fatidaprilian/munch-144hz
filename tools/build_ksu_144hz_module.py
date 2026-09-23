@@ -44,7 +44,7 @@ name=POCO F4 144Hz Calibration & Settings Unlock
 version=v5.3-aio
 versionCode=530
 author=fatidaprilian
-description=All-in-One installer: Flashes calibrated 144Hz DTBO (0-nit black, no scanlines, 1:1 brightness) & unlocks 144Hz in MIUI/HyperOS/AOSP.
+description=All-in-One installer: Flashes calibrated 144Hz DTBO (0-nit black, no scanlines, 1:1 brightness) & auto-guards against kernel overwrites.
 """
 
 # customize.sh (Executed by KernelSU, Magisk, APatch, and TWRP direct installer)
@@ -183,14 +183,70 @@ else
   rm -rf "$MODPATH/system"
 fi
 
-# Clean up temporary DTBO payload from module directory
-rm -f "$MODPATH/dtbo.img"
+# Set executable permission for background auto-guard service
+chmod 0755 "$MODPATH/service.sh" 2>/dev/null
 
 ui_print " "
 ui_print "--------------------------------------------------"
 ui_print "  Installation completed successfully!            "
 ui_print "  Please reboot your device.                      "
 ui_print "--------------------------------------------------"
+"""
+
+# service.sh (Late-start background service: Auto-heals DTBO if overwritten by custom kernels)
+service_sh = """#!/system/bin/sh
+##########################################################################################
+# POCO F4 (munch) 144Hz Auto-Guard Service
+# Author: fatidaprilian
+##########################################################################################
+
+MODDIR=${0%/*}
+
+# Wait for boot completion
+until [ "$(getprop sys.boot_completed)" = "1" ]; do
+  sleep 2
+done
+
+# Wait 5s for system settling
+sleep 5
+
+[ -f "$MODDIR/dtbo.img" ] || exit 0
+
+DTBO_BLK=""
+for part in "dtbo_a" "dtbo_b" "dtbo"; do
+  for path in "/dev/block/bootdevice/by-name/$part" "/dev/block/by-name/$part" "/dev/block/mapper/$part"; do
+    if [ -b "$path" ] || [ -e "$path" ]; then
+      DTBO_BLK="$path"
+      break 2
+    fi
+  done
+done
+
+[ -n "$DTBO_BLK" ] || exit 0
+
+DTBO_SIZE=$(wc -c < "$MODDIR/dtbo.img")
+CHECK_TMP="/data/local/tmp/dtbo_check"
+
+# Read payload size from partition
+dd if="$DTBO_BLK" of="$CHECK_TMP" bs=4096 count=$(( (DTBO_SIZE + 4095) / 4096 )) 2>/dev/null
+
+if [ -f "$CHECK_TMP" ]; then
+  if ! cmp -s -n "$DTBO_SIZE" "$MODDIR/dtbo.img" "$CHECK_TMP"; then
+    # Overwritten partition detected! Restore 144Hz DTBO
+    for part in "dtbo_a" "dtbo_b" "dtbo"; do
+      for path in "/dev/block/bootdevice/by-name/$part" "/dev/block/by-name/$part" "/dev/block/mapper/$part"; do
+        if [ -b "$path" ] || [ -e "$path" ]; then
+          dd if="$MODDIR/dtbo.img" of="$path" bs=4096 2>/dev/null
+          break
+        fi
+      done
+    done
+
+    # Notify user that DTBO was restored and a restart is needed
+    cmd notification post -S bigtext -t "POCO F4 144Hz" "Tag144" "Kernel update detected! 144Hz DTBO was automatically restored. Please restart your phone to apply." 2>/dev/null
+  fi
+  rm -f "$CHECK_TMP"
+fi
 """
 
 # Universal update-binary for Manager & Recovery
@@ -244,6 +300,7 @@ if [ -f "$MODPATH/customize.sh" ]; then
 fi
 
 find "$MODPATH" -type f -exec chmod 0644 {} + 2>/dev/null
+chmod 0755 "$MODPATH/service.sh" 2>/dev/null
 exit 0
 """
 
@@ -254,6 +311,7 @@ with zipfile.ZipFile(out_zip, 'w', compression=zipfile.ZIP_DEFLATED) as z:
     z.writestr('module.prop', module_prop)
     z.write(dtbo_img, 'dtbo.img')
     z.writestr('customize.sh', customize_sh)
+    z.writestr('service.sh', service_sh)
     z.writestr('META-INF/com/google/android/update-binary', update_binary)
     z.writestr('META-INF/com/google/android/updater-script', updater_script)
     
@@ -262,4 +320,4 @@ with zipfile.ZipFile(out_zip, 'w', compression=zipfile.ZIP_DEFLATED) as z:
     z.writestr('system/product/etc/device_features/munch_global.xml', patched_xml)
     z.writestr('system/product/etc/device_features/munch_in.xml', patched_xml)
 
-print(f"[+] Successfully built All-in-One Module: {out_zip} ({os.path.getsize(out_zip)} bytes)")
+print(f"[+] Successfully built All-in-One Module with Auto-Guard: {out_zip} ({os.path.getsize(out_zip)} bytes)")

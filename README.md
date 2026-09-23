@@ -64,6 +64,12 @@ Grab the latest files from the [`out/`](out/) folder or GitHub Releases:
 2. Go to **Install**, select `twrp_144Munch_v5_3_parity26.zip`, and swipe to flash.
 3. Reboot to system.
 
+### Updating Your Custom Kernel?
+If you update or flash a custom kernel that overwrites the DTBO partition:
+* You **do not** need to reinstall this module.
+* The module has an automatic background guard. On your first boot after the kernel update, it detects the change and automatically restores the 144Hz DTBO.
+* You will get a notification asking you to reboot. Simply restart your phone once more to re-apply 144Hz!
+
 ---
 
 ## Compatibility
