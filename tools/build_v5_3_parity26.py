@@ -124,9 +124,6 @@ new_fps_list = """    <integer-array name="fpsList">
 patched_xml = xml_content.replace(
     '<integer name="smart_fps_value">120</integer>',
     '<integer name="smart_fps_value">144</integer>'
-).replace(
-    '<bool name="support_smart_fps">true</bool>',
-    '<bool name="support_smart_fps">false</bool>'
 ).replace(old_fps_list, new_fps_list)
 
 module_prop = """id=munch_144hz_display_unlock

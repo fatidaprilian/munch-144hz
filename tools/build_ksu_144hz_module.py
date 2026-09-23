@@ -27,7 +27,7 @@ if old_fps_list not in xml_content:
 if '<bool name="support_smart_fps">true</bool>' not in xml_content:
     raise RuntimeError("Target support_smart_fps true not found in munch.xml")
 
-# Patch values for MIUI/HyperOS (Disable Smart DFPS to prevent idle drop downclocking)
+# Patch values for MIUI/HyperOS (Keep support_smart_fps=true for full Custom menu with 144, 120, 60)
 new_fps_list = """    <integer-array name="fpsList">
         <item>144</item>
         <item>120</item>
@@ -37,12 +37,9 @@ new_fps_list = """    <integer-array name="fpsList">
 patched_xml = xml_content.replace(
     '<integer name="smart_fps_value">120</integer>',
     '<integer name="smart_fps_value">144</integer>'
-).replace(
-    '<bool name="support_smart_fps">true</bool>',
-    '<bool name="support_smart_fps">false</bool>'
 ).replace(old_fps_list, new_fps_list)
 
-print("[*] Successfully prepared patched munch.xml for MIUI/HyperOS (support_smart_fps=false)")
+print("[*] Successfully prepared patched munch.xml for MIUI/HyperOS (full 144/120/60 menu)")
 
 # module.prop
 module_prop = """id=munch_144hz_display_unlock
