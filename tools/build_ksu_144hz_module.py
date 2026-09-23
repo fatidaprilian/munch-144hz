@@ -24,7 +24,10 @@ old_fps_list = """    <integer-array name="fpsList">
 if old_fps_list not in xml_content:
     raise RuntimeError("Target fpsList not found in munch.xml")
 
-# Patch values for MIUI/HyperOS
+if '<bool name="support_smart_fps">true</bool>' not in xml_content:
+    raise RuntimeError("Target support_smart_fps true not found in munch.xml")
+
+# Patch values for MIUI/HyperOS (Disable Smart DFPS to prevent idle drop downclocking)
 new_fps_list = """    <integer-array name="fpsList">
         <item>144</item>
         <item>120</item>
@@ -34,9 +37,12 @@ new_fps_list = """    <integer-array name="fpsList">
 patched_xml = xml_content.replace(
     '<integer name="smart_fps_value">120</integer>',
     '<integer name="smart_fps_value">144</integer>'
+).replace(
+    '<bool name="support_smart_fps">true</bool>',
+    '<bool name="support_smart_fps">false</bool>'
 ).replace(old_fps_list, new_fps_list)
 
-print("[*] Successfully prepared patched munch.xml for MIUI/HyperOS")
+print("[*] Successfully prepared patched munch.xml for MIUI/HyperOS (support_smart_fps=false)")
 
 # module.prop
 module_prop = """id=munch_144hz_display_unlock
@@ -44,7 +50,14 @@ name=POCO F4 144Hz Display Mod
 version=v5.3
 versionCode=530
 author=fatidaprilian
-description=Flashes 144Hz DTBO (0-nit black, no scanlines) and unlocks 144Hz in Settings. Auto-guards against kernel overwrites.
+description=Flashes 144Hz DTBO and unlocks 144Hz in Settings. Auto-guards against kernel updates.
+"""
+
+# system.prop (Disables Xiaomi Dynamic FPS at vendor HAL level)
+system_prop = """# POCO F4 (munch) 144Hz Display Settings
+# Author: fatidaprilian
+ro.vendor.dfps.enable=false
+ro.vendor.smart_dfps.enable=false
 """
 
 # customize.sh (Executed by KernelSU, Magisk, APatch, and TWRP direct installer)
@@ -148,7 +161,25 @@ else
 fi
 
 ui_print " "
-ui_print "--> Flashing Calibrated 144Hz DTBO..."
+# Locate DTBO block device
+DTBO_BLK=""
+for part in "dtbo_a" "dtbo_b" "dtbo"; do
+  for path in "/dev/block/bootdevice/by-name/$part" "/dev/block/by-name/$part" "/dev/block/mapper/$part"; do
+    if [ -b "$path" ] || [ -e "$path" ]; then
+      DTBO_BLK="$path"
+      break 2
+    fi
+  done
+done
+
+# 1. Backup current DTBO before first flashing
+if [ -n "$DTBO_BLK" ] && [ ! -f /data/adb/munch_stock_dtbo.img ]; then
+  ui_print "--> Backing up current DTBO..."
+  dd if="$DTBO_BLK" of="/data/adb/munch_stock_dtbo.img" bs=4096 2>/dev/null
+fi
+
+ui_print " "
+ui_print "--> Flashing 144Hz DTBO..."
 FLASHED=0
 for part in "dtbo_a" "dtbo_b" "dtbo"; do
   for path in "/dev/block/bootdevice/by-name/$part" "/dev/block/by-name/$part" "/dev/block/mapper/$part"; do
@@ -165,7 +196,7 @@ for part in "dtbo_a" "dtbo_b" "dtbo"; do
 done
 
 if [ "$FLASHED" -eq 1 ]; then
-  ui_print "  [+] DTBO flashed successfully! (0-nit black, scanline-free, 1:1 brightness)"
+  ui_print "  [+] DTBO flashed successfully."
 else
   ui_print "  [!] Notice: DTBO block device not found directly."
   ui_print "      Please also flash twrp_munch_144hz_display_unlock.zip in TWRP if DTBO was not written."
@@ -175,7 +206,8 @@ ui_print " "
 if [ "$TARGET_ROM" = "miui" ]; then
   ui_print "--> Configuring MIUI/HyperOS Display Settings..."
   ui_print "  [+] Systemless overlay applied to device_features/munch.xml"
-  ui_print "  [+] 144Hz option enabled in Settings -> Display -> Refresh rate"
+  ui_print "  [+] 144Hz option enabled in Settings"
+  ui_print "  [+] Idle-drop fix enabled"
 else
   ui_print "--> Configuring AOSP..."
   ui_print "  [+] AOSP displays read 144Hz natively from DTBO timings."
@@ -183,8 +215,9 @@ else
   rm -rf "$MODPATH/system"
 fi
 
-# Set executable permission for background auto-guard service
+# Set executable permission for scripts
 chmod 0755 "$MODPATH/service.sh" 2>/dev/null
+chmod 0755 "$MODPATH/uninstall.sh" 2>/dev/null
 
 ui_print " "
 ui_print "--------------------------------------------------"
@@ -193,10 +226,10 @@ ui_print "  Please reboot your device.                      "
 ui_print "--------------------------------------------------"
 """
 
-# service.sh (Late-start background service: Auto-heals DTBO if overwritten by custom kernels)
+# service.sh (Late-start background service: Auto-heals DTBO & prevents idle-drop)
 service_sh = """#!/system/bin/sh
 ##########################################################################################
-# POCO F4 (munch) 144Hz Auto-Guard Service
+# POCO F4 (munch) 144Hz Auto-Guard & Refresh Rate Auto-Lock Service
 # Author: fatidaprilian
 ##########################################################################################
 
@@ -210,43 +243,96 @@ done
 # Wait 5s for system settling
 sleep 5
 
-[ -f "$MODDIR/dtbo.img" ] || exit 0
-
-DTBO_BLK=""
-for part in "dtbo_a" "dtbo_b" "dtbo"; do
-  for path in "/dev/block/bootdevice/by-name/$part" "/dev/block/by-name/$part" "/dev/block/mapper/$part"; do
-    if [ -b "$path" ] || [ -e "$path" ]; then
-      DTBO_BLK="$path"
-      break 2
-    fi
-  done
-done
-
-[ -n "$DTBO_BLK" ] || exit 0
-
-DTBO_SIZE=$(wc -c < "$MODDIR/dtbo.img")
-CHECK_TMP="/data/local/tmp/dtbo_check"
-
-# Read payload size from partition
-dd if="$DTBO_BLK" of="$CHECK_TMP" bs=4096 count=$(( (DTBO_SIZE + 4095) / 4096 )) 2>/dev/null
-
-if [ -f "$CHECK_TMP" ]; then
-  if ! cmp -s -n "$DTBO_SIZE" "$MODDIR/dtbo.img" "$CHECK_TMP"; then
-    # Overwritten partition detected! Restore 144Hz DTBO
-    for part in "dtbo_a" "dtbo_b" "dtbo"; do
-      for path in "/dev/block/bootdevice/by-name/$part" "/dev/block/by-name/$part" "/dev/block/mapper/$part"; do
-        if [ -b "$path" ] || [ -e "$path" ]; then
-          dd if="$MODDIR/dtbo.img" of="$path" bs=4096 2>/dev/null
-          break
-        fi
-      done
+# --- Part 1: Auto-Guard (Restore DTBO if overwritten by custom kernel) ---
+if [ -f "$MODDIR/dtbo.img" ]; then
+  DTBO_BLK=""
+  for part in "dtbo_a" "dtbo_b" "dtbo"; do
+    for path in "/dev/block/bootdevice/by-name/$part" "/dev/block/by-name/$part" "/dev/block/mapper/$part"; do
+      if [ -b "$path" ] || [ -e "$path" ]; then
+        DTBO_BLK="$path"
+        break 2
+      fi
     done
+  done
 
-    # Notify user that DTBO was restored and a restart is needed
-    cmd notification post -S bigtext -t "POCO F4 144Hz" "Tag144" "Kernel update detected! 144Hz DTBO was automatically restored. Please restart your phone to apply." 2>/dev/null
+  if [ -n "$DTBO_BLK" ]; then
+    DTBO_SIZE=$(wc -c < "$MODDIR/dtbo.img")
+    CHECK_TMP="/data/local/tmp/dtbo_check"
+    dd if="$DTBO_BLK" of="$CHECK_TMP" bs=4096 count=$(( (DTBO_SIZE + 4095) / 4096 )) 2>/dev/null
+
+    if [ -f "$CHECK_TMP" ]; then
+      if ! cmp -s -n "$DTBO_SIZE" "$MODDIR/dtbo.img" "$CHECK_TMP"; then
+        # Overwritten partition detected! Restore 144Hz DTBO
+        for part in "dtbo_a" "dtbo_b" "dtbo"; do
+          for path in "/dev/block/bootdevice/by-name/$part" "/dev/block/by-name/$part" "/dev/block/mapper/$part"; do
+            if [ -b "$path" ] || [ -e "$path" ]; then
+              dd if="$MODDIR/dtbo.img" of="$path" bs=4096 2>/dev/null
+              break
+            fi
+          done
+        done
+
+        # Notify user that DTBO was restored and a restart is needed
+        cmd notification post -S bigtext -t "POCO F4 144Hz" "Tag144" "Kernel update detected! 144Hz DTBO was automatically restored. Please restart your phone to apply." 2>/dev/null
+      fi
+      rm -f "$CHECK_TMP"
+    fi
   fi
-  rm -f "$CHECK_TMP"
 fi
+
+# --- Part 2: 144Hz Settings Synchronizer & Zero Idle-Drop Daemon ---
+# Android DisplayModeDirector idle timer drops refresh rate if min_refresh_rate is not synced.
+# This daemon ensures min_refresh_rate tracks user_refresh_rate so 144Hz never drops when idle.
+(
+  LAST_FPS=""
+  while true; do
+    CURR_FPS=$(settings get system user_refresh_rate 2>/dev/null)
+    if [ "$CURR_FPS" != "$LAST_FPS" ]; then
+      case "$CURR_FPS" in
+        144)
+          settings put system min_refresh_rate 144.0 2>/dev/null
+          settings put system peak_refresh_rate 144.0 2>/dev/null
+          ;;
+        120)
+          settings put system min_refresh_rate 120.0 2>/dev/null
+          settings put system peak_refresh_rate 120.0 2>/dev/null
+          ;;
+        60)
+          settings put system min_refresh_rate 60.0 2>/dev/null
+          settings put system peak_refresh_rate 60.0 2>/dev/null
+          ;;
+      esac
+      LAST_FPS="$CURR_FPS"
+    fi
+    sleep 4
+  done
+) &
+"""
+
+# uninstall.sh (Executes automatically when user removes the module in KernelSU/Magisk)
+uninstall_sh = """#!/system/bin/sh
+##########################################################################################
+# POCO F4 (munch) 144Hz Display Mod Uninstaller
+# Author: fatidaprilian
+##########################################################################################
+
+# 1. Restore factory stock DTBO if backup exists
+if [ -f /data/adb/munch_stock_dtbo.img ]; then
+  for part in "dtbo_a" "dtbo_b" "dtbo"; do
+    for path in "/dev/block/bootdevice/by-name/$part" "/dev/block/by-name/$part" "/dev/block/mapper/$part"; do
+      if [ -b "$path" ] || [ -e "$path" ]; then
+        dd if=/data/adb/munch_stock_dtbo.img of="$path" bs=4096 2>/dev/null
+        break
+      fi
+    done
+  done
+  rm -f /data/adb/munch_stock_dtbo.img
+fi
+
+# 2. Reset display settings database back to factory stock 120Hz
+settings delete system min_refresh_rate 2>/dev/null
+settings put system peak_refresh_rate 120.0 2>/dev/null
+settings put system user_refresh_rate 120 2>/dev/null
 """
 
 # Universal update-binary for Manager & Recovery
@@ -301,6 +387,7 @@ fi
 
 find "$MODPATH" -type f -exec chmod 0644 {} + 2>/dev/null
 chmod 0755 "$MODPATH/service.sh" 2>/dev/null
+chmod 0755 "$MODPATH/uninstall.sh" 2>/dev/null
 exit 0
 """
 
@@ -309,9 +396,11 @@ updater_script = "#MAGISK\n"
 # Create ZIP
 with zipfile.ZipFile(out_zip, 'w', compression=zipfile.ZIP_DEFLATED) as z:
     z.writestr('module.prop', module_prop)
+    z.writestr('system.prop', system_prop)
     z.write(dtbo_img, 'dtbo.img')
     z.writestr('customize.sh', customize_sh)
     z.writestr('service.sh', service_sh)
+    z.writestr('uninstall.sh', uninstall_sh)
     z.writestr('META-INF/com/google/android/update-binary', update_binary)
     z.writestr('META-INF/com/google/android/updater-script', updater_script)
     
@@ -320,4 +409,4 @@ with zipfile.ZipFile(out_zip, 'w', compression=zipfile.ZIP_DEFLATED) as z:
     z.writestr('system/product/etc/device_features/munch_global.xml', patched_xml)
     z.writestr('system/product/etc/device_features/munch_in.xml', patched_xml)
 
-print(f"[+] Successfully built All-in-One Module with Auto-Guard: {out_zip} ({os.path.getsize(out_zip)} bytes)")
+print(f"[+] Successfully built All-in-One Module with Auto-Guard & Clean Uninstaller: {out_zip} ({os.path.getsize(out_zip)} bytes)")

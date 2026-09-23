@@ -67,7 +67,7 @@ data[clk4_off:clk4_off+4] = struct.pack('>I', 0x4190ab00)
 print(f"[*] Patched timing@4 panel-clockrate at 0x{clk4_off:x}: 1252MHz -> 1100MHz")
 
 # =========================================================================
-# 3. Hardware Display Calibration (VREG1=26, VREG2=26: Exact 120Hz Parity)
+# 3. Hardware Display Parameters (VREG1=26, VREG2=26: Exact 120Hz Parity)
 # =========================================================================
 replacements = [
     # Gate voltage 14 & 99: 39 39 -> 41 41 (preserves stability, prevents scanlines)
@@ -100,34 +100,247 @@ for pat, rep in replacements:
 print(f"\nTotal pattern blocks replaced: {total_replaced} (expected 42)")
 
 # =========================================================================
-# 4. Write Output DTBO & Package TWRP ZIP
+# 4. Write Output DTBO & Package TWRP ZIPs
 # =========================================================================
 out_dtbo = '/home/ryuen/Project/munch-144hz/out/dtbo.img'
 with open(out_dtbo, 'wb') as f:
     f.write(data)
 
-out_zip = '/home/ryuen/Project/munch-144hz/out/twrp_munch_144hz_display_unlock.zip'
-ref_binary = '/home/ryuen/Project/munch-144hz/reference/unpacked_twrp_144munch/META-INF/com/google/android/update-binary'
+# Read patched munch.xml from ksu module builder or build it here
+source_xml = '/home/ryuen/Project/munch-144hz/munch.xml'
+with open(source_xml, 'r', encoding='utf-8') as f:
+    xml_content = f.read()
 
-clean_updater_script = """ui_print("------------------------------------------------");
-ui_print("        POCO F4 (munch) 144Hz Display Mod       ");
-ui_print("        Author: fatidaprilian                   ");
-ui_print("        GitHub: https://github.com/fatidaprilian/munch-144hz ");
-ui_print("------------------------------------------------");
-ui_print("[*] Flashing 144Hz DTBO to dtbo_a...");
-package_extract_file("dtbo.img", "/dev/block/bootdevice/by-name/dtbo_a");
-ui_print("[*] Flashing 144Hz DTBO to dtbo_b...");
-package_extract_file("dtbo.img", "/dev/block/bootdevice/by-name/dtbo_b");
-ui_print("[+] Done! 144Hz applied successfully.");
-ui_print("------------------------------------------------");
+old_fps_list = """    <integer-array name="fpsList">
+        <item>120</item>
+        <item>60</item>
+    </integer-array>"""
+new_fps_list = """    <integer-array name="fpsList">
+        <item>144</item>
+        <item>120</item>
+        <item>60</item>
+    </integer-array>"""
+
+patched_xml = xml_content.replace(
+    '<integer name="smart_fps_value">120</integer>',
+    '<integer name="smart_fps_value">144</integer>'
+).replace(
+    '<bool name="support_smart_fps">true</bool>',
+    '<bool name="support_smart_fps">false</bool>'
+).replace(old_fps_list, new_fps_list)
+
+module_prop = """id=munch_144hz_display_unlock
+name=POCO F4 144Hz Display Mod
+version=v5.3
+versionCode=530
+author=fatidaprilian
+description=Flashes 144Hz DTBO and unlocks 144Hz in Settings. Auto-guards against kernel updates.
 """
 
+system_prop = """# POCO F4 (munch) 144Hz Display Settings
+# Author: fatidaprilian
+ro.vendor.dfps.enable=false
+ro.vendor.smart_dfps.enable=false
+"""
+
+service_sh = """#!/system/bin/sh
+##########################################################################################
+# POCO F4 (munch) 144Hz Auto-Guard & Refresh Rate Auto-Lock Service
+# Author: fatidaprilian
+##########################################################################################
+
+MODDIR=${0%/*}
+
+until [ "$(getprop sys.boot_completed)" = "1" ]; do
+  sleep 2
+done
+
+sleep 5
+
+# Auto-guard against kernel updates overwriting DTBO
+if [ -f "$MODDIR/dtbo.img" ]; then
+  DTBO_BLK=""
+  for part in "dtbo_a" "dtbo_b" "dtbo"; do
+    for path in "/dev/block/bootdevice/by-name/$part" "/dev/block/by-name/$part" "/dev/block/mapper/$part"; do
+      if [ -b "$path" ] || [ -e "$path" ]; then
+        DTBO_BLK="$path"
+        break 2
+      fi
+    done
+  done
+
+  if [ -n "$DTBO_BLK" ]; then
+    DTBO_SIZE=$(wc -c < "$MODDIR/dtbo.img")
+    CHECK_TMP="/data/local/tmp/dtbo_check"
+    dd if="$DTBO_BLK" of="$CHECK_TMP" bs=4096 count=$(( (DTBO_SIZE + 4095) / 4096 )) 2>/dev/null
+
+    if [ -f "$CHECK_TMP" ]; then
+      if ! cmp -s -n "$DTBO_SIZE" "$MODDIR/dtbo.img" "$CHECK_TMP"; then
+        for part in "dtbo_a" "dtbo_b" "dtbo"; do
+          for path in "/dev/block/bootdevice/by-name/$part" "/dev/block/by-name/$part" "/dev/block/mapper/$part"; do
+            if [ -b "$path" ] || [ -e "$path" ]; then
+              dd if="$MODDIR/dtbo.img" of="$path" bs=4096 2>/dev/null
+              break
+            fi
+          done
+        done
+        cmd notification post -S bigtext -t "POCO F4 144Hz" "Tag144" "Kernel update detected! 144Hz DTBO was automatically restored. Please restart your phone to apply." 2>/dev/null
+      fi
+      rm -f "$CHECK_TMP"
+    fi
+  fi
+fi
+
+# Settings Synchronizer & Zero Idle-Drop Daemon
+(
+  LAST_FPS=""
+  while true; do
+    CURR_FPS=$(settings get system user_refresh_rate 2>/dev/null)
+    if [ "$CURR_FPS" != "$LAST_FPS" ]; then
+      case "$CURR_FPS" in
+        144)
+          settings put system min_refresh_rate 144.0 2>/dev/null
+          settings put system peak_refresh_rate 144.0 2>/dev/null
+          ;;
+        120)
+          settings put system min_refresh_rate 120.0 2>/dev/null
+          settings put system peak_refresh_rate 120.0 2>/dev/null
+          ;;
+        60)
+          settings put system min_refresh_rate 60.0 2>/dev/null
+          settings put system peak_refresh_rate 60.0 2>/dev/null
+          ;;
+      esac
+      LAST_FPS="$CURR_FPS"
+    fi
+    sleep 4
+  done
+) &
+"""
+
+uninstall_sh = """#!/system/bin/sh
+##########################################################################################
+# POCO F4 (munch) 144Hz Display Mod Uninstaller
+# Author: fatidaprilian
+##########################################################################################
+
+if [ -f /data/adb/munch_stock_dtbo.img ]; then
+  for part in "dtbo_a" "dtbo_b" "dtbo"; do
+    for path in "/dev/block/bootdevice/by-name/$part" "/dev/block/by-name/$part" "/dev/block/mapper/$part"; do
+      if [ -b "$path" ] || [ -e "$path" ]; then
+        dd if=/data/adb/munch_stock_dtbo.img of="$path" bs=4096 2>/dev/null
+        break
+      fi
+    done
+  done
+  rm -f /data/adb/munch_stock_dtbo.img
+fi
+
+settings delete system min_refresh_rate 2>/dev/null
+settings put system peak_refresh_rate 120.0 2>/dev/null
+settings put system user_refresh_rate 120 2>/dev/null
+"""
+
+# TWRP 144Hz Installer binary
+twrp_install_sh = """#!/sbin/sh
+##########################################################################################
+# POCO F4 (munch) 144Hz TWRP Display Mod Installer
+# Author: fatidaprilian
+# GitHub: https://github.com/fatidaprilian/munch-144hz
+##########################################################################################
+
+umask 022
+OUTFD=$2
+ZIPFILE=$3
+
+ui_print() {
+  if [ -n "$OUTFD" ] && [ -e "/proc/self/fd/$OUTFD" ]; then
+    echo "ui_print $1" > "/proc/self/fd/$OUTFD"
+    echo "ui_print" > "/proc/self/fd/$OUTFD"
+  else
+    echo "$1"
+  fi
+}
+
+ui_print "--------------------------------------------------"
+ui_print "        POCO F4 (munch) 144Hz Display Mod         "
+ui_print "        Author: fatidaprilian                     "
+ui_print "        GitHub: https://github.com/fatidaprilian/munch-144hz "
+ui_print "--------------------------------------------------"
+
+mount /data 2>/dev/null
+
+DTBO_BLK=""
+for part in "dtbo_a" "dtbo_b" "dtbo"; do
+  for path in "/dev/block/bootdevice/by-name/$part" "/dev/block/by-name/$part" "/dev/block/mapper/$part"; do
+    if [ -b "$path" ] || [ -e "$path" ]; then
+      DTBO_BLK="$path"
+      break 2
+    fi
+  done
+done
+
+if [ -n "$DTBO_BLK" ] && [ ! -f /data/adb/munch_stock_dtbo.img ]; then
+  ui_print "[*] Backing up current DTBO..."
+  mkdir -p /data/adb 2>/dev/null
+  dd if="$DTBO_BLK" of="/data/adb/munch_stock_dtbo.img" bs=4096 2>/dev/null
+fi
+
+ui_print "[*] Flashing 144Hz DTBO..."
+FLASHED=0
+for part in "dtbo_a" "dtbo_b" "dtbo"; do
+  for path in "/dev/block/bootdevice/by-name/$part" "/dev/block/by-name/$part" "/dev/block/mapper/$part"; do
+    if [ -b "$path" ] || [ -e "$path" ]; then
+      ui_print "  Flashing to $part ($path)..."
+      unzip -p "$ZIPFILE" dtbo.img > "$path" 2>/dev/null && FLASHED=1
+      break
+    fi
+  done
+done
+
+if [ "$FLASHED" -eq 1 ]; then
+  ui_print "  [+] DTBO flashed successfully."
+fi
+
+ui_print "[*] Configuring MIUI/HyperOS Settings Integration..."
+if [ -d /data/adb/modules ] || [ -d /data/adb/ksu ] || [ -d /data/adb/magisk ] || [ -d /data/adb/ap ]; then
+  MODPATH="/data/adb/modules/munch_144hz_display_unlock"
+  mkdir -p "$MODPATH"
+  unzip -o "$ZIPFILE" -x 'META-INF/*' -d "$MODPATH" >/dev/null 2>&1
+  chmod -R 0755 "$MODPATH"
+  find "$MODPATH" -type f -exec chmod 0644 {} + 2>/dev/null
+  chmod 0755 "$MODPATH/service.sh" 2>/dev/null
+  chmod 0755 "$MODPATH/uninstall.sh" 2>/dev/null
+  ui_print "  [+] Module configured at /data/adb/modules/munch_144hz_display_unlock"
+  ui_print "  [+] Settings 144Hz option enabled"
+  ui_print "  [+] Idle-drop fix enabled"
+else
+  ui_print "  [!] Notice: Root framework (/data/adb/modules) not found."
+  ui_print "      Hardware 144Hz DTBO active. On rootless MIUI, toggle 144Hz via an FPS switcher."
+fi
+
+ui_print " "
+ui_print "--------------------------------------------------"
+ui_print "  Installation completed successfully!            "
+ui_print "  Please reboot your device.                      "
+ui_print "--------------------------------------------------"
+exit 0
+"""
+
+out_zip = '/home/ryuen/Project/munch-144hz/out/twrp_munch_144hz_display_unlock.zip'
 with zipfile.ZipFile(out_zip, 'w', compression=zipfile.ZIP_DEFLATED) as z:
     z.write(out_dtbo, 'dtbo.img')
-    z.write(ref_binary, 'META-INF/com/google/android/update-binary')
-    z.writestr('META-INF/com/google/android/updater-script', clean_updater_script)
+    z.writestr('module.prop', module_prop)
+    z.writestr('system.prop', system_prop)
+    z.writestr('service.sh', service_sh)
+    z.writestr('uninstall.sh', uninstall_sh)
+    z.writestr('system/product/etc/device_features/munch.xml', patched_xml)
+    z.writestr('system/product/etc/device_features/munch_global.xml', patched_xml)
+    z.writestr('system/product/etc/device_features/munch_in.xml', patched_xml)
+    z.writestr('META-INF/com/google/android/update-binary', twrp_install_sh)
+    z.writestr('META-INF/com/google/android/updater-script', '#TWRP\n')
 
-print(f"\n[+] Created flashable ZIP: {out_zip} ({os.path.getsize(out_zip)} bytes)")
+print(f"\n[+] Created TWRP flashable ZIP: {out_zip} ({os.path.getsize(out_zip)} bytes)")
 
 # =========================================================================
 # 5. Decompile and Verify with DTC
