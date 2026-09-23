@@ -11,9 +11,11 @@ This project fixes those issues directly at the DTBO hardware level and provides
 ## Screenshots
 
 <p align="center">
-  <img src="assets/settings_144hz.jpg" width="45%" alt="144Hz in MIUI Settings" />
-  &nbsp;&nbsp;
-  <img src="assets/ufotest_144hz.jpeg" width="45%" alt="144Hz UFO Test" />
+  <img src="assets/settings_144hz.jpg" width="31%" alt="144Hz in MIUI Settings" />
+  &nbsp;
+  <img src="assets/ufotest_144hz.jpeg" width="31%" alt="144Hz UFO Test" />
+  &nbsp;
+  <img src="assets/samplerate.jpeg" width="31%" alt="144Hz Input Event Invoke Rate" />
 </p>
 
 ---
@@ -22,7 +24,7 @@ This project fixes those issues directly at the DTBO hardware level and provides
 
 * **True AMOLED Black**: Black pixels now turn completely off (0 nits), fixing the dark-gray glow present in older mods.
 * **No Scanlines or Jitter**: Re-tuned panel drive timings to eliminate horizontal scanlines and micro-flicker.
-* **Solid 144.0Hz Refresh Rate**: Corrected vertical porch timings so the screen locks onto a solid 144.0Hz without dipping to 142Hz.
+* **Solid 144Hz Input Event Invoke Rate**: Corrected vertical porch timings so touch polling and display refresh run at a true 144Hz input event invoke rate instead of dropping to 142Hz.
 * **Balanced Brightness**: Realigned brightness levels with the factory 120Hz mode so switching refresh rates is smooth with no blinding jumps.
 * **Safe Refresh Rate Cap**: Disabled the unstable 164Hz overclock mode to keep the display panel safe from unnecessary strain.
 * **Native Display Settings**: The included module adds a native 144Hz toggle directly into your official Display Settings menu—no third-party switcher apps needed.
