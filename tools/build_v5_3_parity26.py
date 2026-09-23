@@ -83,6 +83,9 @@ replacements = [
     (bytes.fromhex('02b0b339000000000002d318'), bytes.fromhex('02b0b339000000000002d326')),
     # ELVSS cathode: 48 0e 48 0e -> 42 12 42 12 (0-nit OLED black)
     (bytes.fromhex('02b05f39010000000005d3480e480e'), bytes.fromhex('02b05f39010000000005d342124212')),
+    # Source bias b0 77 & 7b: 04 47 -> 03 49 (match 120Hz BS4 value)
+    (bytes.fromhex('02b07739010000000003d30447'), bytes.fromhex('02b07739010000000003d30349')),
+    (bytes.fromhex('02b07b39010000000003d30447'), bytes.fromhex('02b07b39010000000003d30349')),
 ]
 
 total_replaced = 0
