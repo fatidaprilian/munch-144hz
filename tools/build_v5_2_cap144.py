@@ -1,6 +1,8 @@
 import os, struct, zipfile, subprocess, re
 
-orig_dtbo_path = '/home/ryuen/Project/munch-144hz/reference/unpacked_twrp_144munch/dtbo.img'
+# Resolve root relative to this script (tools/../)
+_root          = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+orig_dtbo_path = os.path.join(_root, 'reference', 'unpacked_twrp_144munch', 'dtbo.img')
 with open(orig_dtbo_path, 'rb') as f:
     data = bytearray(f.read())
 
@@ -103,12 +105,12 @@ print(f"\nTotal pattern blocks replaced: {total_replaced} (expected 42)")
 # =========================================================================
 # 4. Write Output DTBO & Package TWRP ZIP
 # =========================================================================
-out_dtbo = '/home/ryuen/Project/munch-144hz/out/dtbo.img'
+out_dtbo   = os.path.join(_root, 'out', 'dtbo.img')
 with open(out_dtbo, 'wb') as f:
     f.write(data)
 
-out_zip = '/home/ryuen/Project/munch-144hz/out/twrp_144Munch_v5_2_cap144.zip'
-ref_binary = '/home/ryuen/Project/munch-144hz/reference/unpacked_twrp_144munch/META-INF/com/google/android/update-binary'
+out_zip    = os.path.join(_root, 'out', 'twrp_144Munch_v5_2_cap144.zip')
+ref_binary = os.path.join(_root, 'reference', 'unpacked_twrp_144munch', 'META-INF', 'com', 'google', 'android', 'update-binary')
 
 clean_updater_script = """ui_print("------------------------------------------------");
 ui_print("        POCO F4 (munch) 144Hz Calibration       ");
@@ -133,12 +135,12 @@ print(f"\n[+] Created flashable ZIP: {out_zip} ({os.path.getsize(out_zip)} bytes
 # =========================================================================
 # 5. Decompile and Verify with DTC
 # =========================================================================
-dtc_bin = '/home/ryuen/Project/munch-144hz/tools/usr/bin/dtc'
-dump_dtb = '/home/ryuen/Project/munch-144hz/out/dump_v5_2.dtb'
+dtc_bin    = os.path.join(_root, 'tools', 'usr', 'bin', 'dtc')
+dump_dtb   = os.path.join(_root, 'out', 'dump_v5_2.dtb')
 with open(dump_dtb, 'wb') as f:
     f.write(data[0x40:])
 
-verify_dts = '/home/ryuen/Project/munch-144hz/out/dump_v5_2.dts'
+verify_dts = os.path.join(_root, 'out', 'dump_v5_2.dts')
 subprocess.run([dtc_bin, '-I', 'dtb', '-O', 'dts', dump_dtb, '-o', verify_dts], capture_output=True, text=True)
 
 with open(verify_dts, 'r') as f:
