@@ -1,6 +1,8 @@
 import os, struct, zipfile, subprocess, re
 
-orig_dtbo_path = '/home/ryuen/Project/munch-144hz/reference/unpacked_twrp_144munch/dtbo.img'
+# Resolve root relative to this script (tools/../)
+_root          = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+orig_dtbo_path = os.path.join(_root, 'reference', 'unpacked_twrp_144munch', 'dtbo.img')
 with open(orig_dtbo_path, 'rb') as f:
     data = bytearray(f.read())
 
@@ -102,12 +104,12 @@ print(f"\nTotal pattern blocks replaced: {total_replaced} (expected 42)")
 # =========================================================================
 # 4. Write Output DTBO & Package TWRP ZIPs
 # =========================================================================
-out_dtbo = '/home/ryuen/Project/munch-144hz/out/dtbo.img'
+out_dtbo   = os.path.join(_root, 'out', 'dtbo.img')
 with open(out_dtbo, 'wb') as f:
     f.write(data)
 
 # Read patched munch.xml from ksu module builder or build it here
-source_xml = '/home/ryuen/Project/munch-144hz/munch.xml'
+source_xml = os.path.join(_root, 'munch.xml')
 with open(source_xml, 'r', encoding='utf-8') as f:
     xml_content = f.read()
 
@@ -324,7 +326,7 @@ ui_print "--------------------------------------------------"
 exit 0
 """
 
-out_zip = '/home/ryuen/Project/munch-144hz/out/twrp_munch_144hz_display_unlock.zip'
+out_zip = os.path.join(_root, 'out', 'twrp_munch_144hz_display_unlock.zip')
 with zipfile.ZipFile(out_zip, 'w', compression=zipfile.ZIP_DEFLATED) as z:
     z.write(out_dtbo, 'dtbo.img')
     z.writestr('module.prop', module_prop)
@@ -342,12 +344,12 @@ print(f"\n[+] Created TWRP flashable ZIP: {out_zip} ({os.path.getsize(out_zip)} 
 # =========================================================================
 # 5. Decompile and Verify with DTC
 # =========================================================================
-dtc_bin = '/home/ryuen/Project/munch-144hz/tools/usr/bin/dtc'
-dump_dtb = '/home/ryuen/Project/munch-144hz/out/dump_v5_3.dtb'
+dtc_bin    = os.path.join(_root, 'tools', 'usr', 'bin', 'dtc')
+dump_dtb   = os.path.join(_root, 'out', 'dump_v5_3.dtb')
 with open(dump_dtb, 'wb') as f:
     f.write(data[0x40:])
 
-verify_dts = '/home/ryuen/Project/munch-144hz/out/dump_v5_3.dts'
+verify_dts = os.path.join(_root, 'out', 'dump_v5_3.dts')
 subprocess.run([dtc_bin, '-I', 'dtb', '-O', 'dts', dump_dtb, '-o', verify_dts], capture_output=True, text=True)
 
 with open(verify_dts, 'r') as f:

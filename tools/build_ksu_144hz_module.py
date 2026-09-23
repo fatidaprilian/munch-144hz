@@ -1,10 +1,11 @@
 import os, zipfile, shutil
 
-# Paths
-source_xml = '/home/ryuen/Project/munch-144hz/munch.xml'
-out_dir = '/home/ryuen/Project/munch-144hz/out'
-out_zip = os.path.join(out_dir, 'ksu_munch_144hz_display_unlock.zip')
-dtbo_img = os.path.join(out_dir, 'dtbo.img')
+# Resolve root relative to this script (tools/../)
+_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+source_xml = os.path.join(_root, 'munch.xml')
+out_dir    = os.path.join(_root, 'out')
+out_zip    = os.path.join(out_dir, 'ksu_munch_144hz_display_unlock.zip')
+dtbo_img   = os.path.join(out_dir, 'dtbo.img')
 
 if not os.path.exists(dtbo_img):
     raise RuntimeError(f"dtbo.img not found at {dtbo_img}. Please build DTBO first.")
