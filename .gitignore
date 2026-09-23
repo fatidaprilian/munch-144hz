@@ -1,0 +1,26 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Windows / OS metadata
+*:Zone.Identifier
+.DS_Store
+Thumbs.db
+
+# Large 32MB raw partition backup dumps
+reference/dtbo_bs4.img
+reference/dtbo_munch.img
+reference/unpacked_bs4/
+reference/unpacked_munch/
+reference/unpacked_twrp_144munch/
+dtbo munch miui/
+zip refrense twrp/
+
+# Local tools and research
+tools/usr/
+tools/research/
+
+# Intermediate DTC verification dumps
+out/dump_*
+*.log
