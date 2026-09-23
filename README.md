@@ -33,33 +33,41 @@ This project fixes those issues directly at the DTBO hardware level and provides
 
 Grab the latest files from the [`out/`](out/) folder or GitHub Releases:
 
-1. **DTBO Flashable ZIP** (`twrp_144Munch_v5_3_parity26.zip`): The calibrated DTBO containing 144.0Hz timings, true black, and balanced brightness.
-2. **Settings Unlock Module** (`ksu_munch_144hz_display_unlock.zip`): Systemless module for KernelSU, Magisk, or APatch that unlocks the 144Hz option in MIUI Settings.
+1. **All-in-One Module (Recommended)** (`ksu_munch_144hz_display_unlock.zip`):
+   * Universal installer for **KernelSU**, **Magisk**, **APatch**, or **TWRP**.
+   * Flashes the calibrated 144Hz DTBO directly to your hardware partition.
+   * Prompts you with an interactive volume key menu (Auto Detect, MIUI/HyperOS, or AOSP) with an 8-second timeout.
+   * In MIUI/HyperOS: enables 144Hz in the stock Settings app.
+   * In AOSP: sets up 144Hz natively and keeps the system clean.
+2. **Standalone DTBO Flashable ZIP** (`twrp_144Munch_v5_3_parity26.zip`):
+   * Traditional TWRP-only installer that solely flashes the DTBO partition (ideal if you are unrooted or prefer managing DTBO manually).
 
 ---
 
 ## How to Install
 
-### Step 1: Flash the Calibrated DTBO
-1. Boot your POCO F4 into **TWRP Recovery**.
-2. Go to **Install**, select `twrp_144Munch_v5_3_parity26.zip`, and swipe to confirm.
-3. Reboot to system.
-
-### Step 2: Unlock 144Hz in MIUI Settings (Optional but Recommended)
-1. Open the **KernelSU** or **Magisk** app on your phone.
-2. Navigate to the **Modules** tab.
-3. Tap **Install from storage**, select `ksu_munch_144hz_display_unlock.zip`, and install it.  
-   *(You can also flash this ZIP directly in TWRP if you prefer).*
+### Option A: All-in-One Module (Easiest)
+1. Open the **KernelSU**, **Magisk**, or **APatch** app on your phone.
+2. Go to the **Modules** tab, tap **Install from storage**, and select `ksu_munch_144hz_display_unlock.zip`.  
+   *(You can also flash this ZIP directly in TWRP Recovery).*
+3. When prompted, use your Volume keys:
+   * **Vol +**: Auto-detect your ROM.
+   * **Vol -**: Choose manually between MIUI/HyperOS and AOSP.
+   * *(If you do nothing, it will automatically detect your ROM after 8 seconds).*
 4. Reboot your phone.
-5. Go to **Settings -> Display -> Refresh rate**, and select **144 Hz**.
+5. In MIUI: Go to **Settings -> Display -> Refresh rate**, and select **144 Hz**.
+
+### Option B: Standalone TWRP Flash (Rootless)
+1. Boot your POCO F4 into **TWRP Recovery**.
+2. Go to **Install**, select `twrp_144Munch_v5_3_parity26.zip`, and swipe to flash.
+3. Reboot to system.
 
 ---
 
 ## Compatibility
 
-* **ROM**: Tested and confirmed working on MIUI 13 (Android 12). Should also work on MIUI 14 and HyperOS.
-* **Root Managers**: KernelSU, Magisk, and APatch.
-* **AOSP ROMs**: AOSP uses its own DTBO base on some trees. An AOSP-specific build will be added in a future update.
+* **ROM**: Confirmed working on MIUI 13 (Android 12), MIUI 14, HyperOS, and AOSP custom ROMs.
+* **Root Managers**: KernelSU, Magisk, and APatch (or rootless via TWRP).
 
 ---
 
