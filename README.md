@@ -100,10 +100,9 @@ To remove the mod:
 * **Author & Maintenance**: [fatidaprilian](https://github.com/fatidaprilian)
 * **GitHub Repository**: [munch-144hz](https://github.com/fatidaprilian/munch-144hz)
 * **Hardware Base**: Xiaomi & Black Shark (for the original E4 144Hz DSI parameters)
-* **POCO F4 Community**: For testing and feedback
 
 ---
 
 ## Disclaimer
 
-This is a community modification. While extensively tested and safe on the POCO F4 hardware, flash at your own risk. Always keep a backup of your stock DTBO before flashing.
+While tested and verified on the POCO F4 hardware, flash at your own risk. Always keep a backup of your stock DTBO before flashing.
