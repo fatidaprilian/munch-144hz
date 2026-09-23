@@ -71,6 +71,13 @@ Grab the latest files from the [`out/`](out/) folder or GitHub Releases:
 
 ---
 
+## Known Issues & Feedback
+
+* **Brightness Curve Not 100% 1:1**: While the brightness between 120Hz and 144Hz is now very close thanks to matching DAC gamma registers (`VREG1 26`), it is not strictly 1:1 across every single slider step due to physical OLED pulse emission differences at 144Hz.
+* If you have deeper experience with the Samsung E4 panel or the `r66451` display driver and know how to dial this curve in even further, please feel free to open an issue or submit a pull request on GitHub!
+
+---
+
 ## Credits & Thanks
 
 * **Calibration & Maintenance**: [fatidaprilian](https://github.com/fatidaprilian)
