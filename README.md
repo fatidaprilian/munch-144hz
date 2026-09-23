@@ -1,10 +1,10 @@
-# POCO F4 (munch) 144Hz Display Calibration
+# POCO F4 (munch) 144Hz
 
-A clean, calibrated 144Hz DTBO and native display settings unlock for the POCO F4 / Redmi K40S (`munch`).
+A clean 144Hz display mod and native refresh rate unlock for the POCO F4 / Redmi K40S (`munch`).
 
-The POCO F4 features a Samsung E4 AMOLED display (driven by the `r66451` DDIC). While officially limited to 120Hz on stock MIUI, the panel hardware is physically capable of running at 144Hz. Earlier community mods ported raw timings from the Black Shark 4, but that came with noticeable issues: washed-out gray blacks, panel flicker, scanlines, over-saturated colors, and a 142Hz frame pacing bug.
+The POCO F4 comes with a Samsung E4 AMOLED panel. While officially set to 120Hz on stock software, the panel hardware is physically capable of running at 144Hz. Earlier community mods ported raw timings from the Black Shark 4, but that came with noticeable bugs: washed-out gray blacks, screen flicker, scanlines, and a 142Hz frame pacing bottleneck.
 
-This project fixes those issues directly at the DTBO hardware level and provides a native 144Hz option in the stock MIUI display settings.
+This project fixes those issues directly at the DTBO hardware level and provides a native 144Hz toggle in your phone's stock Display Settings.
 
 ---
 
@@ -18,14 +18,14 @@ This project fixes those issues directly at the DTBO hardware level and provides
 
 ---
 
-## What's Fixed & Improved?
+## What's Improved?
 
-* **Pure 0-nit True Black**: Fixed the cathode voltage (`ELVSS`) back to `42 12 42 12`. Blacks are completely turned off (0 nits) like an AMOLED should be, rather than glowing dark gray.
-* **No More Scanlines or Flicker**: Tuned the gate driver slew rate (`41 41`) so the display stays crisp and clean without visible horizontal lines or artifacts.
-* **Solid 144.0Hz Refresh Rate**: Fixed the vertical front porch from the old 580 lines down to 535 lines (`0x217`). Touch and display testers now report a consistent 144.0Hz rate instead of dipping to 142Hz.
-* **Safe Refresh Rate Cap**: The unstable 164Hz overclock mode (`timing@4`) has been harmonized to 144Hz. If any app or script requests 164Hz or 167Hz, it safely runs at 144Hz instead.
-* **Balanced Brightness**: Aligned the DAC gamma reference (`VREG1 26` / `VREG2 26`) closer to stock 120Hz factory values. While it's not a 100% mathematically identical match across every single slider level due to OLED pulse emission differences, it is very close now—no more blinding jumps when switching between refresh rates.
-* **Native MIUI Display Settings**: With the included KernelSU / Magisk module, 144Hz shows up directly inside `Settings -> Display -> Refresh rate`. You don't need any third-party refresh rate switcher apps anymore.
+* **True AMOLED Black**: Black pixels now turn completely off (0 nits), fixing the dark-gray glow present in older mods.
+* **No Scanlines or Jitter**: Re-tuned panel drive timings to eliminate horizontal scanlines and micro-flicker.
+* **Solid 144.0Hz Refresh Rate**: Corrected vertical porch timings so the screen locks onto a solid 144.0Hz without dipping to 142Hz.
+* **Balanced Brightness**: Realigned brightness levels with the factory 120Hz mode so switching refresh rates is smooth with no blinding jumps.
+* **Safe Refresh Rate Cap**: Disabled the unstable 164Hz overclock mode to keep the display panel safe from unnecessary strain.
+* **Native Display Settings**: The included module adds a native 144Hz toggle directly into your official Display Settings menu—no third-party switcher apps needed.
 
 ---
 
@@ -73,14 +73,14 @@ Grab the latest files from the [`out/`](out/) folder or GitHub Releases:
 
 ## Known Issues & Feedback
 
-* **Brightness Curve Not 100% 1:1**: While the brightness between 120Hz and 144Hz is now very close thanks to matching DAC gamma registers (`VREG1 26`), it is not strictly 1:1 across every single slider step due to physical OLED pulse emission differences at 144Hz.
-* If you have deeper experience with the Samsung E4 panel or the `r66451` display driver and know how to dial this curve in even further, please feel free to open an issue or submit a pull request on GitHub!
+* **Brightness Curve**: While brightness levels between 120Hz and 144Hz are now very close, they are not 100% mathematically 1:1 across every single slider step due to physical OLED pulse emission differences at higher refresh rates.
+* If you have ideas or know how to dial this curve in even closer, feel free to open an issue or submit a pull request on GitHub!
 
 ---
 
 ## Credits & Thanks
 
-* **Calibration & Maintenance**: [fatidaprilian](https://github.com/fatidaprilian)
+* **Author & Maintenance**: [fatidaprilian](https://github.com/fatidaprilian)
 * **Hardware Base**: Xiaomi & Black Shark (for the original E4 144Hz DSI parameters)
 * **POCO F4 Community**: For testing and feedback
 
