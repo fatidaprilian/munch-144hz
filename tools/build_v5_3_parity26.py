@@ -106,20 +106,19 @@ out_dtbo = '/home/ryuen/Project/munch-144hz/out/dtbo.img'
 with open(out_dtbo, 'wb') as f:
     f.write(data)
 
-out_zip = '/home/ryuen/Project/munch-144hz/out/twrp_144Munch_v5_3_parity26.zip'
+out_zip = '/home/ryuen/Project/munch-144hz/out/twrp_munch_144hz_display_unlock.zip'
 ref_binary = '/home/ryuen/Project/munch-144hz/reference/unpacked_twrp_144munch/META-INF/com/google/android/update-binary'
 
 clean_updater_script = """ui_print("------------------------------------------------");
-ui_print("        POCO F4 (munch) 144Hz Calibration       ");
-ui_print("        Build v5.3: 1:1 Slider Brightness Parity ");
-ui_print("        Calibrated by: fatidaprilian            ");
-ui_print("        GitHub: github.com/fatidaprilian        ");
+ui_print("        POCO F4 (munch) 144Hz Display Mod       ");
+ui_print("        Author: fatidaprilian                   ");
+ui_print("        GitHub: https://github.com/fatidaprilian/munch-144hz ");
 ui_print("------------------------------------------------");
-ui_print("[*] Flashing calibrated DTBO to dtbo_a...");
+ui_print("[*] Flashing 144Hz DTBO to dtbo_a...");
 package_extract_file("dtbo.img", "/dev/block/bootdevice/by-name/dtbo_a");
-ui_print("[*] Flashing calibrated DTBO to dtbo_b...");
+ui_print("[*] Flashing 144Hz DTBO to dtbo_b...");
 package_extract_file("dtbo.img", "/dev/block/bootdevice/by-name/dtbo_b");
-ui_print("[+] Done! 144Hz calibration applied successfully.");
+ui_print("[+] Done! 144Hz applied successfully.");
 ui_print("------------------------------------------------");
 """
 

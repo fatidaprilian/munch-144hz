@@ -37,11 +37,11 @@ Grab the latest files from the [`out/`](out/) folder or GitHub Releases:
 
 1. **All-in-One Module (Recommended)** (`ksu_munch_144hz_display_unlock.zip`):
    * Universal installer for **KernelSU**, **Magisk**, **APatch**, or **TWRP**.
-   * Flashes the calibrated 144Hz DTBO directly to your hardware partition.
+   * Flashes the 144Hz DTBO directly to your hardware partition.
    * Prompts you with an interactive volume key menu (Auto Detect, MIUI/HyperOS, or AOSP) with an 8-second timeout.
    * In MIUI/HyperOS: enables 144Hz in the stock Settings app.
    * In AOSP: sets up 144Hz natively and keeps the system clean.
-2. **Standalone DTBO Flashable ZIP** (`twrp_144Munch_v5_3_parity26.zip`):
+2. **Standalone DTBO Flashable ZIP** (`twrp_munch_144hz_display_unlock.zip`):
    * Traditional TWRP-only installer that solely flashes the DTBO partition (ideal if you are unrooted or prefer managing DTBO manually).
 
 ---
@@ -61,7 +61,7 @@ Grab the latest files from the [`out/`](out/) folder or GitHub Releases:
 
 ### Option B: Standalone TWRP Flash (Rootless)
 1. Boot your POCO F4 into **TWRP Recovery**.
-2. Go to **Install**, select `twrp_144Munch_v5_3_parity26.zip`, and swipe to flash.
+2. Go to **Install**, select `twrp_munch_144hz_display_unlock.zip`, and swipe to flash.
 3. Reboot to system.
 
 ### Updating Your Custom Kernel?
@@ -89,6 +89,7 @@ If you update or flash a custom kernel that overwrites the DTBO partition:
 ## Credits & Thanks
 
 * **Author & Maintenance**: [fatidaprilian](https://github.com/fatidaprilian)
+* **GitHub Repository**: [munch-144hz](https://github.com/fatidaprilian/munch-144hz)
 * **Hardware Base**: Xiaomi & Black Shark (for the original E4 144Hz DSI parameters)
 * **POCO F4 Community**: For testing and feedback
 

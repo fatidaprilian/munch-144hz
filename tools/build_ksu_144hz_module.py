@@ -40,17 +40,17 @@ print("[*] Successfully prepared patched munch.xml for MIUI/HyperOS")
 
 # module.prop
 module_prop = """id=munch_144hz_display_unlock
-name=POCO F4 144Hz Calibration & Settings Unlock
-version=v5.3-aio
+name=POCO F4 144Hz Display Mod
+version=v5.3
 versionCode=530
 author=fatidaprilian
-description=All-in-One installer: Flashes calibrated 144Hz DTBO (0-nit black, no scanlines, 1:1 brightness) & auto-guards against kernel overwrites.
+description=Flashes 144Hz DTBO (0-nit black, no scanlines) and unlocks 144Hz in Settings. Auto-guards against kernel overwrites.
 """
 
 # customize.sh (Executed by KernelSU, Magisk, APatch, and TWRP direct installer)
 customize_sh = """#!/sbin/sh
 ##########################################################################################
-# POCO F4 (munch) 144Hz All-in-One Module Customization Script
+# POCO F4 (munch) 144Hz Display Mod Customization Script
 # Author: fatidaprilian
 ##########################################################################################
 
@@ -79,9 +79,9 @@ choose_key() {
 }
 
 ui_print "--------------------------------------------------"
-ui_print "  POCO F4 (munch) 144Hz All-in-One Installer      "
-ui_print "  Build v5.3: Calibrated DTBO & Settings Unlock   "
+ui_print "  POCO F4 (munch) 144Hz Display Mod               "
 ui_print "  Author: fatidaprilian                           "
+ui_print "  GitHub: https://github.com/fatidaprilian/munch-144hz "
 ui_print "--------------------------------------------------"
 
 ui_print " "
@@ -168,7 +168,7 @@ if [ "$FLASHED" -eq 1 ]; then
   ui_print "  [+] DTBO flashed successfully! (0-nit black, scanline-free, 1:1 brightness)"
 else
   ui_print "  [!] Notice: DTBO block device not found directly."
-  ui_print "      Please also flash twrp_144Munch_v5_3_parity26.zip in TWRP if DTBO was not written."
+  ui_print "      Please also flash twrp_munch_144hz_display_unlock.zip in TWRP if DTBO was not written."
 fi
 
 ui_print " "
