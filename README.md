@@ -2,7 +2,7 @@
 
 A clean 144Hz display mod and native refresh rate unlock for the POCO F4 / Redmi K40S (`munch`).
 
-The POCO F4 comes with a Samsung E4 AMOLED panel. While officially set to 120Hz on stock software, the panel hardware is physically capable of running at 144Hz. Earlier community mods ported raw timings from the Black Shark 4, but that came with noticeable bugs: washed-out gray blacks, screen flicker, scanlines, and a 142Hz frame pacing bottleneck.
+The POCO F4 comes with a Samsung E4 AMOLED panel. While officially capped at 120Hz on stock software, the panel hardware is physically capable of running at 144Hz. Other available modules have known issues: washed-out gray blacks, screen flicker, scanlines, and a 142Hz frame pacing bottleneck instead of a true 144Hz.
 
 This project fixes those issues directly at the DTBO hardware level and provides a native 144Hz toggle in your phone's stock Display Settings.
 
