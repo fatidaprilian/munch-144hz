@@ -50,11 +50,22 @@ data[vfp4_off:vfp4_off+4] = struct.pack('>I', 0x244)
 clk4_off = 0x48b0c
 data[clk4_off:clk4_off+4] = struct.pack('>I', 0x4190ab00)
 
-# 3. Hardware registers
-# Gate: 39 39
-# VREG1: 2c
-# VREG2: 18
-# ELVSS: 48 0e 48 0e
+# 3. Hardware registers (144Hz Calibration)
+# Gate Drive: 41 41
+data = bytearray(data.replace(bytes.fromhex("02b01439010000000003d33939"), bytes.fromhex("02b01439010000000003d34141")))
+data = bytearray(data.replace(bytes.fromhex("02b09939010000000003d33939"), bytes.fromhex("02b09939010000000003d34141")))
+
+# VREG2: 1f
+data = bytearray(data.replace(bytes.fromhex("02b0af39000000000002d318"), bytes.fromhex("02b0af39000000000002d31f")))
+data = bytearray(data.replace(bytes.fromhex("02b0b339000000000002d318"), bytes.fromhex("02b0b339000000000002d31f")))
+
+# ELVSS: 45 10 45 10
+data = bytearray(data.replace(bytes.fromhex("02b05f39010000000005d3480e480e"), bytes.fromhex("02b05f39010000000005d345104510")))
+
+# VREG1: 29
+data = bytearray(data.replace(bytes.fromhex("02b02a39000000000002d32c"), bytes.fromhex("02b02a39000000000002d329")))
+data = bytearray(data.replace(bytes.fromhex("02b02e39000000000002d32c"), bytes.fromhex("02b02e39000000000002d329")))
+
 # Source bias: 04 47
 # H-porch: d1 10
 
