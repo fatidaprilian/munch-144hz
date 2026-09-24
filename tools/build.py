@@ -85,6 +85,9 @@ patched_xml = xml_content.replace(
 ).replace(old_fps_list, new_fps_list).replace(
     '<bool name="support_dc_backlight">false</bool>',
     '<bool name="support_dc_backlight">true</bool>'
+).replace(
+    '<integer name="defaultFps">60</integer>',
+    '<integer name="defaultFps">144</integer>'
 )
 
 # 5. Shared Package Scripts
