@@ -24,14 +24,14 @@ if dtb_start != 0x40:
 
 print("[*] Building POCO F4 144Hz DTBO...")
 
-# 1. Patch timing@3 (144Hz Mode)
-# transfer-time-us: 7000us -> 6000us
+# 1. Patch timing@3 (144Hz mode)
+# transfer-time-us: 6000us
 tt3_off = dtb_start + 0x47ec8
 data[tt3_off:tt3_off+4] = struct.pack('>I', 0x1770)
 
-# v-front-porch: 580 -> 535 (144.0Hz TE sync)
+# v-front-porch: 580
 vfp3_off = 0x47e74
-data[vfp3_off:vfp3_off+4] = struct.pack('>I', 0x217)
+data[vfp3_off:vfp3_off+4] = struct.pack('>I', 0x244)
 
 # 2. Patch timing@4 (Cap to 144Hz)
 # panel-framerate: 164 -> 144
@@ -42,48 +42,22 @@ data[fr4_off:fr4_off+4] = struct.pack('>I', 0x90)
 vbp4_off = 0x48a8c
 data[vbp4_off:vbp4_off+4] = struct.pack('>I', 0x244)
 
-# v-front-porch: 613 -> 535
+# v-front-porch: 613 -> 580
 vfp4_off = 0x48a9c
-data[vfp4_off:vfp4_off+4] = struct.pack('>I', 0x217)
+data[vfp4_off:vfp4_off+4] = struct.pack('>I', 0x244)
 
 # panel-clockrate: 1252MHz -> 1100MHz
 clk4_off = 0x48b0c
 data[clk4_off:clk4_off+4] = struct.pack('>I', 0x4190ab00)
 
-# 3. DDIC Hardware Register Replacements
-replacements = [
-    # TFT Gate drive voltage (b0 14 & 99)
-    (bytes.fromhex('02b01439010000000003d33939'), bytes.fromhex('02b01439010000000003d34141')),
-    (bytes.fromhex('02b09939010000000003d33939'), bytes.fromhex('02b09939010000000003d34141')),
+# 3. Hardware registers
+# Gate: 39 39
+# VREG1: 2c
+# VREG2: 18
+# ELVSS: 48 0e 48 0e
+# Source bias: 04 47
+# H-porch: d1 10
 
-    # Gamma reference VREG1 (b0 2a & 2e)
-    (bytes.fromhex('02b02a39000000000002d32c'), bytes.fromhex('02b02a39000000000002d326')),
-    (bytes.fromhex('02b02e39000000000002d32c'), bytes.fromhex('02b02e39000000000002d326')),
-
-    # Gamma reference VREG2 (b0 af & b3)
-    (bytes.fromhex('02b0af39000000000002d318'), bytes.fromhex('02b0af39000000000002d326')),
-    (bytes.fromhex('02b0b339000000000002d318'), bytes.fromhex('02b0b339000000000002d326')),
-
-    # ELVSS cathode reference (b0 5f)
-    (bytes.fromhex('02b05f39010000000005d3480e480e'), bytes.fromhex('02b05f39010000000005d342124212')),
-
-    # Source bias (b0 77 & 7b)
-    (bytes.fromhex('02b07739010000000003d30447'), bytes.fromhex('02b07739010000000003d30349')),
-    (bytes.fromhex('02b07b39010000000003d30447'), bytes.fromhex('02b07b39010000000003d30349')),
-]
-
-total_replaced = 0
-for pat, rep in replacements:
-    pos = 0
-    while True:
-        idx = data.find(pat, pos)
-        if idx == -1:
-            break
-        data[idx:idx+len(pat)] = rep
-        total_replaced += 1
-        pos = idx + len(rep)
-
-print(f"[*] Patched {total_replaced} DDIC register blocks.")
 
 out_dtbo = os.path.join(out_dir, 'dtbo.img')
 with open(out_dtbo, 'wb') as f:
@@ -108,7 +82,10 @@ new_fps_list = """    <integer-array name="fpsList">
 patched_xml = xml_content.replace(
     '<integer name="smart_fps_value">120</integer>',
     '<integer name="smart_fps_value">144</integer>'
-).replace(old_fps_list, new_fps_list)
+).replace(old_fps_list, new_fps_list).replace(
+    '<bool name="support_dc_backlight">false</bool>',
+    '<bool name="support_dc_backlight">true</bool>'
+)
 
 # 5. Shared Package Scripts
 module_prop = """id=munch_144hz_display_unlock
@@ -325,11 +302,12 @@ fi
 ui_print " "
 if [ "$TARGET_ROM" = "miui" ]; then
   ui_print "--> Configuring MIUI/HyperOS..."
-  ui_print "  [+] 144Hz option added to Settings"
+  ui_print "  [+] 144Hz enabled in Settings"
+  ui_print "  [+] DC Dimming enabled"
   ui_print "  [+] Idle-drop fix enabled"
 else
   ui_print "--> Configuring AOSP..."
-  ui_print "  [+] Native 144Hz active"
+  ui_print "  [+] 144Hz active"
   rm -rf "$MODPATH/system"
 fi
 
