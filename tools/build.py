@@ -55,16 +55,16 @@ data[clk4_off:clk4_off+4] = struct.pack('>I', 0x4190ab00)
 data = bytearray(data.replace(bytes.fromhex("02b01439010000000003d33939"), bytes.fromhex("02b01439010000000003d34141")))
 data = bytearray(data.replace(bytes.fromhex("02b09939010000000003d33939"), bytes.fromhex("02b09939010000000003d34141")))
 
-# VREG2: 1f
-data = bytearray(data.replace(bytes.fromhex("02b0af39000000000002d318"), bytes.fromhex("02b0af39000000000002d31f")))
-data = bytearray(data.replace(bytes.fromhex("02b0b339000000000002d318"), bytes.fromhex("02b0b339000000000002d31f")))
+# VREG2: 26
+data = bytearray(data.replace(bytes.fromhex("02b0af39000000000002d318"), bytes.fromhex("02b0af39000000000002d326")))
+data = bytearray(data.replace(bytes.fromhex("02b0b339000000000002d318"), bytes.fromhex("02b0b339000000000002d326")))
 
-# ELVSS: 45 10 45 10
-data = bytearray(data.replace(bytes.fromhex("02b05f39010000000005d3480e480e"), bytes.fromhex("02b05f39010000000005d345104510")))
+# ELVSS: 42 12 42 12
+data = bytearray(data.replace(bytes.fromhex("02b05f39010000000005d3480e480e"), bytes.fromhex("02b05f39010000000005d342124212")))
 
-# VREG1: 29
-data = bytearray(data.replace(bytes.fromhex("02b02a39000000000002d32c"), bytes.fromhex("02b02a39000000000002d329")))
-data = bytearray(data.replace(bytes.fromhex("02b02e39000000000002d32c"), bytes.fromhex("02b02e39000000000002d329")))
+# VREG1: 26
+data = bytearray(data.replace(bytes.fromhex("02b02a39000000000002d32c"), bytes.fromhex("02b02a39000000000002d326")))
+data = bytearray(data.replace(bytes.fromhex("02b02e39000000000002d32c"), bytes.fromhex("02b02e39000000000002d326")))
 
 # Source bias: 04 47
 # H-porch: d1 10
@@ -104,8 +104,8 @@ patched_xml = xml_content.replace(
 # 5. Shared Package Scripts
 module_prop = """id=munch_144hz_display_unlock
 name=POCO F4 144Hz Display Mod
-version=release
-versionCode=144
+version=release-hotfix
+versionCode=145
 author=fatidaprilian
 description=Enables 144Hz DTBO and Settings toggle for POCO F4 (munch).
 """
