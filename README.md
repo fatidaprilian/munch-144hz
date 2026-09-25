@@ -1,5 +1,7 @@
 # POCO F4 (munch) 144Hz Display Mod
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 A clean display mod to enable 144Hz on the POCO F4 / Redmi K40S (`munch`).
 
 The POCO F4 uses a Samsung E4 AMOLED panel that can run at 144Hz. However, older 144Hz mods often had issues with pale/washed-out colors, grey blacks, scanlines, or refresh rate dropping to 60Hz when idle. This project fixes those issues and adds a 144Hz option directly into your phone's Display Settings.
@@ -95,3 +97,9 @@ fastboot flash dtbo dtbo.img
 ## Disclaimer
 
 While tested and verified on the POCO F4 hardware, flash at your own risk. Always keep a backup of your stock DTBO before flashing.
+
+---
+
+## License
+
+This project is licensed under the **GNU General Public License v3.0** (GPL-3.0). See the [LICENSE](LICENSE) file for details.
