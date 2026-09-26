@@ -22,11 +22,10 @@ The POCO F4 uses a Samsung E4 AMOLED panel that can run at 144Hz. However, older
 
 ## Features
 
-* **144Hz in Settings**: Adds a 144Hz option directly in your official Display Settings (no third-party apps needed).
-* **Natural Colors & Black**: Fixes the pale/washed-out colors and glowing grey blacks from older mods.
-* **No Scanlines**: Eliminates horizontal lines/flicker on grey backgrounds.
-* **No Idle Drop**: Stays at your chosen refresh rate without dropping to 60Hz when idle.
-* **Capped at 144Hz**: Disables the unstable 164Hz overclock mode to keep the panel safe.
+* **144Hz in Settings**: Adds a 144Hz option directly into official Display Settings.
+* **Direct FDT Injection**: Injects 144Hz timing directly into the factory stock Munch DTB without DTC recompilation, keeping native 60Hz and 120Hz modes, touchscreen, and fingerprint phandles completely untouched.
+* **Clean Uninstaller**: Automatically backs up factory stock DTBO on install and restores it when the module is removed in KernelSU or Magisk.
+* **Idle Refresh Rate Lock**: Keeps selected refresh rate steady without dropping to 60Hz when idle.
 
 ---
 
@@ -36,10 +35,10 @@ Download the latest files from GitHub Releases or the [`out/`](out/) folder:
 
 1. **All-in-One Module (Recommended)** (`ksu_munch_144hz_display_unlock.zip`):
    * Universal installer for **KernelSU**, **Magisk**, **APatch**, or **TWRP**.
-   * Flashes the 144Hz DTBO and automatically backs up your current one.
-   * Enables the 144Hz option in Settings (MIUI/HyperOS) or configures AOSP natively.
+   * Flashes the 144Hz DTBO and automatically backs up the stock DTBO.
+   * Enables 144Hz in MIUI/HyperOS Settings and configures system props.
 2. **Standalone DTBO Flashable ZIP** (`twrp_munch_144hz_display_unlock.zip`):
-   * Simple TWRP recovery installer that only flashes the DTBO partition.
+   * Recovery installer for TWRP/OrangeFox.
 3. **Raw DTBO Image** (`dtbo.img`):
    * For flashing via Fastboot: `fastboot flash dtbo dtbo.img`.
 
@@ -50,7 +49,7 @@ Download the latest files from GitHub Releases or the [`out/`](out/) folder:
 ### Option A: Via KernelSU / Magisk / APatch (Recommended)
 1. Open your root manager app (**KernelSU**, **Magisk**, or **APatch**).
 2. Go to the **Modules** tab, tap **Install from storage**, and select `ksu_munch_144hz_display_unlock.zip`.
-3. Follow the on-screen volume key prompt (or wait 8 seconds for auto-detect).
+3. Wait for the installation to finish.
 4. Reboot your phone.
 5. In MIUI/HyperOS: Go to **Settings -> Display -> Refresh rate**, and choose **144 Hz**.
 
@@ -68,21 +67,22 @@ fastboot flash dtbo dtbo.img
 
 ## How to Uninstall
 
-* If installed as a module: simply tap **Remove** in KernelSU/Magisk and reboot. The uninstaller will restore your original stock DTBO automatically.
-* If flashed via recovery or fastboot: flash your stock DTBO backup back to the DTBO partition.
+* If installed as a module: tap **Remove** in KernelSU/Magisk and reboot. The uninstaller restores your original stock DTBO automatically.
+* If flashed via recovery or fastboot: restore your stock DTBO backup to the dtbo partition.
 
 ---
 
 ## Compatibility
 
 * **ROMs**: MIUI 13, MIUI 14, HyperOS, and AOSP custom ROMs.
-* **Root**: KernelSU, Magisk, APatch, or rootless.
+* **Root**: KernelSU, Magisk, APatch, or rootless (via fastboot).
 
 ---
 
 ## Known Notes
 
-* **Brightness Shift**: At 144Hz, the screen is naturally slightly brighter (~19%) than at 120Hz because the panel fires 20% more refresh pulses per second. If it feels too bright, simply adjust your brightness slider slightly down.
+* **Brightness Shift**: At 144Hz, the panel fires 20% more refresh pulses per second compared to 120Hz, making screen luminance naturally slightly higher. If you prefer the 120Hz luminance level, you can lower your brightness slider slightly, or if using a kernel with KCAL support, set `Value` to `242` - `245`.
+* **Sleep-Wake & Ambient Display**: Direct FDT injection preserves stock display wake sequences and True Black bias dividers, avoiding color tint regressions when turning the screen on/off.
 
 ---
 
