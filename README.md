@@ -82,7 +82,6 @@ fastboot flash dtbo dtbo.img
 ## Known Notes
 
 * **Brightness Shift**: At 144Hz, the panel fires 20% more refresh pulses per second compared to 120Hz, making screen luminance naturally slightly higher. If you prefer the 120Hz luminance level, simply lower your phone's brightness slider slightly (about 3–5%). Adjusting KCAL Value/HSV sliders is not recommended as it shifts the AMOLED subpixel white balance.
-* **Sleep-Wake & Ambient Display**: Direct FDT injection preserves stock display wake sequences and True Black bias dividers, avoiding color tint regressions when turning the screen on/off.
 
 ---
 
