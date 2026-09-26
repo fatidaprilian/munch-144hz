@@ -51,9 +51,7 @@ clk4_off = 0x48b0c
 data[clk4_off:clk4_off+4] = struct.pack('>I', 0x4190ab00)
 
 # 3. Hardware registers (144Hz Calibration)
-# Gate Drive: 41 41
-data = bytearray(data.replace(bytes.fromhex("02b01439010000000003d33939"), bytes.fromhex("02b01439010000000003d34141")))
-data = bytearray(data.replace(bytes.fromhex("02b09939010000000003d33939"), bytes.fromhex("02b09939010000000003d34141")))
+# Gate Drive: 39 39 (Native TFT charging ~2.31us for fast & responsive pixel transition)
 
 # VREG2: 26
 data = bytearray(data.replace(bytes.fromhex("02b0af39000000000002d318"), bytes.fromhex("02b0af39000000000002d326")))
@@ -104,8 +102,8 @@ patched_xml = xml_content.replace(
 # 5. Shared Package Scripts
 module_prop = """id=munch_144hz_display_unlock
 name=POCO F4 144Hz Display Mod
-version=release-hotfix
-versionCode=145
+version=v1.0.2
+versionCode=148
 author=fatidaprilian
 description=Enables 144Hz DTBO and Settings toggle for POCO F4 (munch).
 """
