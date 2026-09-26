@@ -641,7 +641,6 @@
     <integer name="threashold_sunlight_brightness">1000</integer>
     <!-- whether support Macro Keyboard -->
     <bool name="support_mi_game_macro">true</bool>
-    <bool name="remove_vgpaper">true</bool>
     <!-- gamebooster game gunsight -->
     <bool name="support_game_gunsight">true</bool>
     <!-- open game dim featrue -->

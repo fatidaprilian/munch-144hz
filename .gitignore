@@ -12,17 +12,19 @@ Thumbs.db
 reference/dtbo_bs4.img
 reference/dtbo_munch.img
 reference/unpacked_bs4/
-reference/unpacked_munch/
 reference/unpacked_twrp_144munch/
+reference/unpacked_munch/
 reference/RE404*
 reference/*.zip
 dtbo munch miui/
 zip refrense twrp/
+unpacked_dtbo/
+scratch/
 
 # Local tools and research
 tools/usr/
 tools/research/
 
-# Intermediate DTC verification dumps
+# Intermediate DTC verification dumps & logs
 out/dump_*
 *.log
