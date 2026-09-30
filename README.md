@@ -65,6 +65,43 @@ fastboot flash dtbo dtbo.img
 
 ---
 
+### If 144Hz Does Not Appear in Settings (AOSP / AOSPA / Custom ROMs)
+
+Some AOSP custom ROMs (such as Paranoid Android / AOSPA, LineageOS, or PixelOS) have their display settings UI hardcoded to 120Hz maximum, or their `Force peak refresh rate` toggle defaults to 120Hz instead of 144Hz.
+
+If you don't see a 144Hz option in your ROM's Settings, use either method below to activate 144Hz:
+
+#### Method 1: Via the Refresh Rate App (Easiest)
+1. Install [`tools/base.apk`](tools/base.apk) on your device.
+2. Open the app and grant root / notification permission if prompted.
+3. Select **144Hz** from the list to immediately apply and lock 144Hz across the system.
+
+#### Method 2: Via Termux (Root) or ADB
+Run the following commands in **Termux** (type `su` first) or via **ADB Shell**:
+```bash
+su
+settings put system peak_refresh_rate 144.0
+settings put system min_refresh_rate 144.0
+settings put global peak_refresh_rate 144.0
+settings put global min_refresh_rate 144.0
+```
+
+*(Optional) To make 144Hz automatically lock on every boot in Magisk / KernelSU:*
+```bash
+su
+cat << 'EOF' > /data/adb/service.d/force_144hz.sh
+#!/system/bin/sh
+sleep 10
+settings put system peak_refresh_rate 144.0
+settings put system min_refresh_rate 144.0
+settings put global peak_refresh_rate 144.0
+settings put global min_refresh_rate 144.0
+EOF
+chmod +x /data/adb/service.d/force_144hz.sh
+```
+
+---
+
 ## How to Uninstall
 
 * If installed as a module: tap **Remove** in KernelSU/Magisk and reboot. The uninstaller restores your original stock DTBO automatically.
