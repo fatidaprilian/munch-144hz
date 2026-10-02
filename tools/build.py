@@ -129,7 +129,8 @@ t2_bytes += make_fdt_prop("qcom,mdss-dsi-off-command", off_cmd)
 t2_bytes += make_fdt_prop("qcom,mdss-dsi-on-command-state", b"dsi_lp_mode\x00")
 t2_bytes += make_fdt_prop("qcom,mdss-dsi-off-command-state", b"dsi_lp_mode\x00")
 
-switch_cmd = bytes.fromhex("39 01 00 00 00 00 03 f0 5a 5a 39 01 00 00 00 00 03 f1 5a 5a 39 01 00 00 00 00 03 fc 5a 5a 39 00 00 00 00 00 02 b0 14 39 01 00 00 00 00 03 d3 39 39 39 00 00 00 00 00 02 b0 2a 39 00 00 00 00 00 02 d3 2c 39 00 00 00 00 00 02 b0 2e 39 00 00 00 00 00 02 d3 2c 39 00 00 00 00 00 02 b0 5f 39 01 00 00 00 00 05 d3 48 0e 48 0e 39 00 00 00 00 00 02 b0 77 39 01 00 00 00 00 03 d3 04 47 39 00 00 00 00 00 02 b0 7b 39 01 00 00 00 00 03 d3 04 47 39 00 00 00 00 00 02 b0 99 39 01 00 00 00 00 03 d3 39 39 39 00 00 00 00 00 02 b0 af 39 00 00 00 00 00 02 d3 18 39 00 00 00 00 00 02 b0 b3 39 00 00 00 00 00 02 d3 18 39 00 00 00 00 00 02 f7 03 39 01 00 00 00 00 03 fc a5 a5 39 01 00 00 00 00 03 f1 a5 a5 39 01 00 00 23 00 03 f0 a5 a5 39 00 00 00 00 00 02 60 10 39 01 00 00 00 00 03 f0 5a 5a 39 01 00 00 00 00 03 fc 5a 5a 39 00 00 00 00 00 02 b0 16 39 00 00 00 00 00 02 d1 10 39 01 00 00 00 00 03 fc a5 a5 39 01 00 00 00 00 03 f0 a5 a5")
+# Timing switch commands + TSP VSYNC/HSYNC synchronization for touch digitizer
+switch_cmd = bytes.fromhex("39 01 00 00 00 00 03 f0 5a 5a 39 01 00 00 00 00 03 f1 5a 5a 39 01 00 00 00 00 03 fc 5a 5a 39 00 00 00 00 00 02 b0 14 39 01 00 00 00 00 03 d3 39 39 39 00 00 00 00 00 02 b0 2a 39 00 00 00 00 00 02 d3 2c 39 00 00 00 00 00 02 b0 2e 39 00 00 00 00 00 02 d3 2c 39 00 00 00 00 00 02 b0 5f 39 01 00 00 00 00 05 d3 48 0e 48 0e 39 00 00 00 00 00 02 b0 77 39 01 00 00 00 00 03 d3 04 47 39 00 00 00 00 00 02 b0 7b 39 01 00 00 00 00 03 d3 04 47 39 00 00 00 00 00 02 b0 99 39 01 00 00 00 00 03 d3 39 39 39 00 00 00 00 00 02 b0 af 39 00 00 00 00 00 02 d3 18 39 00 00 00 00 00 02 b0 b3 39 00 00 00 00 00 02 d3 18 39 00 00 00 00 00 02 f7 03 39 01 00 00 00 00 03 fc a5 a5 39 01 00 00 00 00 03 f1 a5 a5 39 01 00 00 23 00 03 f0 a5 a5 39 00 00 00 00 00 02 60 10 39 01 00 00 00 00 03 f0 5a 5a 39 01 00 00 00 00 03 fc 5a 5a 39 00 00 00 00 00 02 b0 16 39 00 00 00 00 00 02 d1 10 39 01 00 00 00 00 03 fc a5 a5 39 01 00 00 00 00 03 f0 a5 a5 39 01 00 00 00 00 03 f0 5a 5a 39 00 00 00 00 00 04 df 83 00 10 39 00 00 00 00 00 02 b0 01 39 01 00 00 00 00 02 e6 01 39 01 00 00 00 00 03 f0 a5 a5")
 t2_bytes += make_fdt_prop("qcom,mdss-dsi-timing-switch-command", switch_cmd)
 t2_bytes += make_fdt_prop("qcom,mdss-dsi-timing-switch-command-state", b"dsi_lp_mode\x00")
 
@@ -253,8 +254,8 @@ def add_zip_file(z, arcname, filepath, mode=0o644):
 # Package Metadata
 module_prop = """id=munch_144hz_display_unlock
 name=POCO F4 144Hz Display Mod
-version=v1.1.0
-versionCode=150
+version=v1.2.0
+versionCode=160
 author=fatidaprilian
 description=Enables 144Hz display mode and restores factory stock DTBO on uninstallation.
 """
@@ -274,6 +275,16 @@ while [ "$(getprop sys.boot_completed)" != "1" ] && [ "$BOOT_WAIT" -lt 15 ]; do
   BOOT_WAIT=$((BOOT_WAIT + 1))
 done
 sleep 2
+
+# Low-latency gaming touch mode activation (one-time, non-blocking)
+for node in \
+  /sys/class/touch/touch_dev/touch_game_mode \
+  /proc/touchpanel/game_switch_enable \
+  /sys/class/touch/touch_dev/touch_active; do
+  if [ -f "$node" ]; then
+    echo 1 > "$node" 2>/dev/null
+  fi
+done
 
 # One-time hardware status verification (runs once in <2ms, NO loop!)
 if cat /sys/class/drm/*/modes 2>/dev/null | grep -q "144"; then
