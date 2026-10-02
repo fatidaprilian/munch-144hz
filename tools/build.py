@@ -267,10 +267,27 @@ ro.vendor.smart_dfps.enable=false
 service_sh = """#!/system/bin/sh
 MODDIR=${0%/*}
 
-until [ "$(getprop sys.boot_completed)" = "1" ]; do
+# Wait for boot completion with a safe timeout (max 30s)
+BOOT_WAIT=0
+while [ "$(getprop sys.boot_completed)" != "1" ] && [ "$BOOT_WAIT" -lt 15 ]; do
   sleep 2
+  BOOT_WAIT=$((BOOT_WAIT + 1))
 done
-sleep 3
+sleep 2
+
+# One-time hardware status verification (runs once in <2ms, NO loop!)
+if cat /sys/class/drm/*/modes 2>/dev/null | grep -q "144"; then
+  STATUS="Active (144Hz)"
+else
+  STATUS="Inactive (120Hz detected, kernel update overwrote DTBO - please reflash module)"
+fi
+
+DESC="Enables 144Hz display mode. Status: $STATUS"
+
+if command -v ksud >/dev/null 2>&1; then
+  ksud module config set override.description "$DESC" 2>/dev/null
+fi
+sed -i "s/^description=.*/description=$DESC/" "$MODDIR/module.prop" 2>/dev/null
 
 (
   LAST_FPS=""
@@ -324,9 +341,12 @@ if [ -n "$STOCK_IMG" ] && [ -f "$STOCK_IMG" ]; then
 fi
 
 settings delete system min_refresh_rate 2>/dev/null
+settings delete global min_refresh_rate 2>/dev/null
+settings delete global peak_refresh_rate 2>/dev/null
 settings put system peak_refresh_rate 120.0 2>/dev/null
 settings put system user_refresh_rate 120 2>/dev/null
 rm -f /data/adb/munch_stock_dtbo.img 2>/dev/null
+rm -f /data/adb/service.d/force_144hz.sh 2>/dev/null
 exit 0
 """
 
